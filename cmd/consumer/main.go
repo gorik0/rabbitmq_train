@@ -10,6 +10,8 @@ import (
 
 func main() {
 	//ctx := context.Background()
+	//::: RABBIT conn setup
+
 	connection, err := internal.MakeConnection("gorik", "gorik", "localhost:5672", "army")
 	if err != nil {
 		panic("make rabbit conn :: " + err.Error())
@@ -17,13 +19,29 @@ func main() {
 
 	defer connection.Close()
 
+	//::: CLIENT setup
+
 	client, err := internal.MakeRabbitClient(connection)
 	if err != nil {
 		panic("make client ::: " + err.Error())
 	}
 	defer client.Close()
 
-	msgBus, err := client.Consume("fresh_blood", "vonkomat", false)
+	//::: QUEUE setup
+
+	q, err := client.MakeQueue("", true, false)
+	if err != nil {
+		panic("make queue ::: " + err.Error())
+	}
+	//::: BINDING setup
+
+	err = client.MakeBinding(q.Name, "", "army_events")
+	if err != nil {
+		panic("make binding ::: " + err.Error())
+	}
+	//::: CONSUMING start
+
+	msgBus, err := client.Consume(q.Name, "vonkomat", false)
 	if err != nil {
 		return
 	}

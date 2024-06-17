@@ -41,9 +41,12 @@ func (r *RabbitClient) Close() error {
 
 }
 
-func (r RabbitClient) MakeQueue(name string, durable, autodelete bool) error {
-	_, err := r.Channel.QueueDeclare(name, durable, autodelete, false, false, nil)
-	return err
+func (r RabbitClient) MakeQueue(name string, durable, autodelete bool) (rabbi.Queue, error) {
+	qu, err := r.Channel.QueueDeclare(name, durable, autodelete, false, false, nil)
+	if err != nil {
+		return rabbi.Queue{}, err
+	}
+	return qu, nil
 }
 
 func (r *RabbitClient) MakeBinding(name, key, exchange string) error {
