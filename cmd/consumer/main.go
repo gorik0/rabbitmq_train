@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
+	"golang.org/x/sync/errgroup"
 	"gorik.ko/rabbit/internal"
 	"log"
-	"strconv"
+	"time"
 )
 
 func main() {
@@ -25,22 +27,27 @@ func main() {
 	if err != nil {
 		return
 	}
+
+	//::: CREATE CONTEXT errgroup
+
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, time.Second*15)
+	defer cancel()
+	gr, ctx := errgroup.WithContext(ctx)
+	gr.SetLimit(10)
 	go func() {
 		for msg := range msgBus {
-
-			log.Println("Message recieved ::: ", string(msg.Body), strconv.FormatBool(msg.Redelivered))
-			if !msg.Redelivered {
-				err := msg.Nack(false, true)
+			gr.Go(func() error {
+				log.Println("Msg ::: ", string(msg.MessageId))
+				err := msg.Ack(false)
 				if err != nil {
-					log.Println("Coudln't nack msg!!!")
-					continue
+					log.Println("Coudln't ack msg!!!")
+					return err
 				}
-			}
-			err := msg.Ack(false)
-			if err != nil {
-				log.Println("Coudln't ack msg!!!")
-				continue
-			}
+				log.Println("Msg ack ", string(msg.MessageId))
+				return nil
+			})
+
 		}
 	}()
 

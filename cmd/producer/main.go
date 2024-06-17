@@ -39,19 +39,18 @@ func main() {
 		panic("binding ::: " + err.Error())
 	}
 
-	err = client.MakeSend(ctx, "army_events", "fresh.blood.up", rabbi.Publishing{
-		ContentType:  "text/plain",
-		DeliveryMode: rabbi.Persistent,
-		Body:         []byte(`fresh...`),
-	})
-	err = client.MakeSend(ctx, "army_events", "grandpa.blood.*", rabbi.Publishing{
-		ContentType:  "text/plain",
-		DeliveryMode: rabbi.Transient,
-		Body:         []byte(`grandPA...`),
-	})
-	if err != nil {
-		panic(err)
+	for i := 0; i < 10; i++ {
+		err = client.MakeSend(ctx, "army_events", "fresh.blood.up", rabbi.Publishing{
+			ContentType:  "text/plain",
+			DeliveryMode: rabbi.Persistent,
+			Body:         []byte(`fresh...`),
+		})
+		if err != nil {
+			panic(err)
+		}
+
 	}
+
 	defer client.Close()
 	time.Sleep(time.Second * 15)
 
