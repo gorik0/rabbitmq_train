@@ -49,3 +49,7 @@ func (r *RabbitClient) MakeBinding(name, key, exchange string) error {
 func (r *RabbitClient) MakeSend(ctx context.Context, exchange, key string, msg rabbi.Publishing) error {
 	return r.Channel.PublishWithContext(ctx, exchange, key, true, false, msg)
 }
+
+func (r *RabbitClient) Consume(queueName, consumer string, autoAck bool) (<-chan rabbi.Delivery, error) {
+	return r.Channel.Consume(queueName, consumer, autoAck, false, false, false, nil)
+}
